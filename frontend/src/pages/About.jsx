@@ -8,7 +8,7 @@ import {
   FaTools,
   FaUser,
 } from "react-icons/fa";
-//import {LeewayCfImage} from "../assets/kamsiza.jpg";
+import leewayCf from "../assets/leewayCf.jpg";
 
 export default function About() {
   const currentYear = new Date().getFullYear();
@@ -34,7 +34,7 @@ export default function About() {
             <div className="row align-items-center">
               <div className="col-md-4 text-center mb-3 mb-md-0">
                 <img
-                  src={''}
+                  src={leewayCf}
                   alt="Lukato Kalaluka"
                   className="img-fluid rounded-circle border border-3"
                   style={{ maxHeight: "250px", objectFit: "cover" }}
