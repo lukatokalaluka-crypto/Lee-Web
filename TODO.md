@@ -1,0 +1,1 @@
+- [x] Remove modal from PostCard and create dedicated PostDetail page with sharing functionality

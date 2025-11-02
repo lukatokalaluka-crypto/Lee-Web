@@ -59,8 +59,8 @@ export default function Blog() {
       <div className="container py-5">
         <div className="text-center mb-5">
           <h2 className="fw-bold display-6">📝 Blog</h2>
-          <p className="lead text-muted">
-            Explore stories, insights, and updates from the New Generation community.
+          <p className="lead">
+            Explore stories, insights, and updates from the soundtrack community.
           </p>
           <hr className="w-25 mx-auto" />
         </div>
@@ -98,7 +98,13 @@ export default function Blog() {
         </div>
 
         {/* Posts */}
-        {loading && <div className="text-center text-muted">Loading posts...</div>}
+        {loading && (
+          <div className="d-flex justify-content-center">
+            <div className="modern-spinner" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </div>
+          </div>
+        )}
 
         {!loading && posts.length > 0 ? (
           <div className="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4">
