@@ -170,6 +170,7 @@ export const updatePost = async (req, res) => {
         "auto"
       );
       post.fileUrl = result.secure_url;
+      post.originalFilename = req.files.media[0].originalname;
     }
 
     const updatedPost = await post.save();

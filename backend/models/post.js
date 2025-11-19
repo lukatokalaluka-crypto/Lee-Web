@@ -20,6 +20,7 @@ const postSchema = new mongoose.Schema(
     // Media assets
     featuredImage: { type: String }, // Cloudinary image
     fileUrl: { type: String },       // Cloudinary media (audio/video)
+    originalFilename: { type: String }, // Original filename for downloads
 
     // Author reference
     author: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
