@@ -279,7 +279,7 @@ export default function PostDetail() {
                         )}
                         <a
                           href={post.fileUrl}
-                          download
+                          download={post.originalFilename || `${post.title}.mp3`}
                           className="btn btn-outline-primary w-100 mt-3"
                         >
                           <FaDownload className="me-2" /> Download
