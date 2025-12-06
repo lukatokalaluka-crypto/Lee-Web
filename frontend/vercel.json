@@ -1,5 +1,11 @@
 {
   "rewrites": [
-    { "source": "/(.*)", "destination": "/" }
-  ]
+    { "source": "/(.*)", "destination": "/" },
+    { "source": "/sitemap.xml", "destination": "/api/sitemap" }
+  ],
+  "functions": {
+    "api/sitemap.js": {
+      "runtime": "nodejs18.x"
+    }
+  }
 }
