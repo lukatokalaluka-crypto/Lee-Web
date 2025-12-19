@@ -1,6 +1,7 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
+import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import Blog from "./pages/Blog";
 import News from "./pages/News";
@@ -12,7 +13,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 function App() {
   return (
     <Router>
-      {/*<Navbar />*/}
+      <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/blog" element={<Blog />} />
