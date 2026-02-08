@@ -10,6 +10,26 @@ import PostDetail from "./pages/PostDetail";
 import AdminLogin from "./pages/Login";
 import AdminDashboard from "./pages/AdminDashboard";
 
+// Sitemap component to serve XML with correct content-type
+const Sitemap = () => {
+  React.useEffect(() => {
+    const fetchSitemap = async () => {
+      try {
+        const response = await fetch('/api/sitemap');
+        const xml = await response.text();
+        document.open();
+        document.write(xml);
+        document.close();
+      } catch (error) {
+        console.error('Error fetching sitemap:', error);
+      }
+    };
+    fetchSitemap();
+  }, []);
+
+  return null;
+};
+
 function App() {
   return (
     <Router>

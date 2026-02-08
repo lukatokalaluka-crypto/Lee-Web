@@ -123,6 +123,11 @@ export default function PostCard({ post }) {
                   <source src={post.fileUrl} type="video/mp4" />
                 </video>
               )}
+              {post.originalFilename && (
+                <p className="text-muted small mt-1 mb-1" style={{ fontSize: "0.65rem" }}>
+                  <strong>File:</strong> {post.originalFilename}
+                </p>
+              )}
             </div>
           )}
 

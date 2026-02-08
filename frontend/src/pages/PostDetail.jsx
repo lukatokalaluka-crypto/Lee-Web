@@ -277,9 +277,13 @@ export default function PostDetail() {
                             <source src={post.fileUrl} type="video/mp4" />
                           </video>
                         )}
+                        {post.originalFilename && (
+                          <p className="text-muted small mt-2 mb-2">
+                            <strong>Filename:</strong> {post.originalFilename}
+                          </p>
+                        )}
                         <a
-                          href={post.fileUrl}
-                          download={post.originalFilename || `${post.title}.mp3`}
+                          href={`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/posts/${id}/download`}
                           className="btn btn-outline-primary w-100 mt-3"
                         >
                           <FaDownload className="me-2" /> Download

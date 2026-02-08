@@ -6,6 +6,7 @@ import {
   updatePost,
   deletePost,
   getCategories, // ✅ added
+  downloadFile,
 } from "../controllers/postController.js";
 import protect from "../middleware/authMiddleware.js";
 import multer from "multer";
@@ -18,6 +19,7 @@ router.post("/", protect, upload.fields([{ name: "image" }, { name: "media" }]),
 router.get("/", getPosts);
 router.get("/categories", getCategories); // ✅ added
 router.get("/:id", getPostById);
+router.get("/:id/download", downloadFile);
 router.put("/:id", protect, upload.fields([{ name: "image" }, { name: "media" }]), updatePost);
 router.delete("/:id", protect, deletePost);
 

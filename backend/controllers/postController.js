@@ -49,6 +49,7 @@ export const createPost = async (req, res) => {
       featuredImage = result.secure_url;
     }
 
+    let originalFilename = "";
     if (req.files?.media) {
       const result = await uploadToCloudinary(
         req.files.media[0].buffer,
@@ -56,6 +57,7 @@ export const createPost = async (req, res) => {
         "auto"
       );
       fileUrl = result.secure_url;
+      originalFilename = req.files.media[0].originalname;
     }
 
     const post = await Post.create({
@@ -66,6 +68,7 @@ export const createPost = async (req, res) => {
       tags: tags?.split(",").map(t => t.trim()), // ✅ tag support
       featuredImage,
       fileUrl,
+      originalFilename,
       author: req.user._id,
     });
 
@@ -191,6 +194,31 @@ export const deletePost = async (req, res) => {
     res.json({ message: "Post removed" });
   } catch (error) {
     console.error("Delete Post Error:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Download file with original filename
+export const downloadFile = async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post || !post.fileUrl) {
+      return res.status(404).json({ message: "File not found" });
+    }
+
+    const filename = post.originalFilename || `${post.title}.mp3`;
+
+    // Fetch the file from Cloudinary
+    const response = await fetch(post.fileUrl);
+    if (!response.ok) {
+      return res.status(500).json({ message: "Failed to fetch file" });
+    }
+
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Type', response.headers.get('content-type'));
+    response.body.pipe(res);
+  } catch (error) {
+    console.error("Download Error:", error);
     res.status(500).json({ message: error.message });
   }
 };
