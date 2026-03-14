@@ -2,9 +2,9 @@
   "rewrites": [
     { "source": "/((?!sitemap\\.xml).*)", "destination": "/" }
   ],
-"functions": {
+  "functions": {
     "api/sitemap.js": {
-      "runtime": "nodejs18.x@latest"
+      "runtime": "nodejs18.x"
     }
   }
 }
