@@ -1,56 +1,31 @@
-export default async function(req, res) {
-  const baseUrl = req.headers.host ? `https://${req.headers.host}` : 'https://yoursoundtrack.vercel.app';
-
-  const staticPages = [
-    { url: "/", changefreq: "monthly", priority: 1.0 },
-    { url: "/blog", changefreq: "weekly", priority: 0.8 },
-    { url: "/news", changefreq: "weekly", priority: 0.8 },
-    { url: "/about", changefreq: "monthly", priority: 0.5 },
-  ];
-
-  try {
-    // Fetch posts from backend
-    const response = await fetch(`${baseUrl}/api/posts`);
-    const posts = await response.json();
-
-    // Add dynamic post pages to sitemap
-    const postPages = posts.map(post => ({
-      url: `/posts/${post._id}`,
-      changefreq: "weekly",
-      priority: 0.6,
-      lastmod: new Date(post.createdAt).toISOString().split('T')[0]
-    }));
-
-    const allPages = [...staticPages, ...postPages];
-
-    const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+const handler = async (req, res) => {
+  res.setHeader('Content-Type', 'application/xml');
+  res.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=86400');
+  
+  const baseUrl = new URL(req.url, `https://${req.headers.host}`).origin;
+  
+  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${allPages.map(page => `
   <url>
-    <loc>${baseUrl}${page.url}</loc>
-    <lastmod>${page.lastmod || new Date().toISOString().split('T')[0]}</lastmod>
-    <changefreq>${page.changefreq}</changefreq>
-    <priority>${page.priority}</priority>
-  </url>`).join('')}
-</urlset>`;
-
-    res.setHeader('Content-Type', 'application/xml');
-    res.status(200).send(sitemap);
-  } catch (error) {
-    console.error('Error generating sitemap:', error);
-    // Fallback to static sitemap if fetch fails
-    const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${staticPages.map(page => `
+    <loc>${baseUrl}/</loc>
+    <lastmod>${new Date().toISOString()}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
   <url>
-    <loc>${baseUrl}${page.url}</loc>
-    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
-    <changefreq>${page.changefreq}</changefreq>
-    <priority>${page.priority}</priority>
-  </url>`).join('')}
+    <loc>${baseUrl}/about</loc>
+    <lastmod>${new Date().toISOString()}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
 </urlset>`;
+  
+  res.send(sitemap);
+};
 
-    res.setHeader('Content-Type', 'application/xml');
-    res.status(200).send(sitemap);
-  }
-}
+export default handler;
+export const config = {
+  runtime: undefined,
+  maxDuration: 5
+};
+

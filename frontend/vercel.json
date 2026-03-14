@@ -1,20 +1,22 @@
 {
-  "buildCommand": "npm run build",
-  "devCommand": "npm run dev",
-  "installCommand": "npm install",
-  "outputDirectory": "dist",
-  "ignoreCommand": "npm run lint -- --max-warnings 0",
-  "eslint": {
-    "ignoreDuringBuilds": true
-  },
-  "rewrites": [
+  "version": 2,
+  "builds": [
     {
-      "source": "/((?!api).*)",
-      "destination": "/"
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "@vercel/static-build": {
+        "outputDirectory": "dist"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/((?!api|sitemap.xml).*)",
+      "dest": "/"
     },
     {
-      "source": "/api/sitemap.xml",
-      "destination": "/api/sitemap.js"
+      "src": "/api/sitemap.xml",
+      "dest": "/api/sitemap.js"
     }
   ]
 }
