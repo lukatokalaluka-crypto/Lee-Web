@@ -16,10 +16,27 @@ cloudinary.v2.config({
 });
 
 // Helper: Upload buffer to Cloudinary
-const uploadToCloudinary = (fileBuffer, folder, resource_type = "image") =>
+const uploadToCloudinary = (
+  fileBuffer,
+  folder,
+  resource_type = "image",
+  originalFilename = ""
+) =>
   new Promise((resolve, reject) => {
+    const uploadOptions = {
+      folder,
+      resource_type,
+      use_filename: true,
+      unique_filename: true,
+    };
+
+    if (originalFilename) {
+      uploadOptions.filename_override = originalFilename;
+      uploadOptions.display_name = originalFilename;
+    }
+
     const stream = cloudinary.v2.uploader.upload_stream(
-      { folder, resource_type },
+      uploadOptions,
       (error, result) => {
         if (result) resolve(result);
         else reject(error);
@@ -27,6 +44,66 @@ const uploadToCloudinary = (fileBuffer, folder, resource_type = "image") =>
     );
     streamifier.createReadStream(fileBuffer).pipe(stream);
   });
+
+const getFilenameFromUrl = (fileUrl = "") => {
+  try {
+    const pathname = new URL(fileUrl).pathname;
+    const lastSegment = pathname.split("/").pop() || "";
+    const withoutQuery = lastSegment.split("?")[0];
+    const cleaned = withoutQuery.replace(/^v\d+\//, "");
+    const filename = cleaned.includes(".")
+      ? cleaned.substring(cleaned.indexOf("/") + 1)
+      : cleaned;
+
+    return filename || "";
+  } catch {
+    return "";
+  }
+};
+
+const sanitizeFilename = (value = "") =>
+  value.replace(/[\\/:*?"<>|]+/g, "_").trim();
+
+const resolveDownloadFilename = async (post) => {
+  // Priority 1: Stored original filename
+  let filename = sanitizeFilename(post.originalFilename || "");
+  if (filename) return filename;
+
+  // Priority 2: Extract from Cloudinary URL (improved parsing)
+  filename = sanitizeFilename(getFilenameFromUrl(post.fileUrl));
+  if (filename) return filename;
+
+  // Priority 3: Title + detected extension
+  let ext = '';
+  if (post.fileUrl) {
+    try {
+      // HEAD request for content-type
+      const headRes = await fetch(post.fileUrl, { method: 'HEAD' });
+      const contentType = headRes.headers.get('content-type')?.toLowerCase() || '';
+      const mimeToExt = {
+        'audio/mpeg': 'mp3',
+        'audio/wav': 'wav',
+        'audio/ogg': 'ogg',
+        'video/mp4': 'mp4',
+        'video/quicktime': 'mov',
+        'video/webm': 'webm',
+        'audio/mp4': 'm4a',
+        'audio/flac': 'flac'
+      };
+      for (const [mime, extension] of Object.entries(mimeToExt)) {
+        if (contentType.includes(mime.split('/')[1])) {
+          ext = extension;
+          break;
+        }
+      }
+    } catch (e) {
+      console.warn('HEAD fetch failed:', e.message);
+    }
+  }
+
+  const safeTitle = sanitizeFilename(post.title || "download");
+  return ext ? `${safeTitle}.${ext}` : `${safeTitle}`;
+};
 
 // Create Post
 export const createPost = async (req, res) => {
@@ -44,7 +121,8 @@ export const createPost = async (req, res) => {
       const result = await uploadToCloudinary(
         req.files.image[0].buffer,
         "new-gen-music/images",
-        "image"
+        "image",
+        req.files.image[0].originalname
       );
       featuredImage = result.secure_url;
     }
@@ -54,10 +132,14 @@ export const createPost = async (req, res) => {
       const result = await uploadToCloudinary(
         req.files.media[0].buffer,
         "new-gen-music/media",
-        "auto"
+        "auto",
+        req.files.media[0].originalname
       );
       fileUrl = result.secure_url;
-      originalFilename = req.files.media[0].originalname;
+      originalFilename =
+        req.files.media[0].originalname ||
+        result.original_filename ||
+        getFilenameFromUrl(result.secure_url);
     }
 
     const post = await Post.create({
@@ -161,7 +243,8 @@ export const updatePost = async (req, res) => {
       const result = await uploadToCloudinary(
         req.files.image[0].buffer,
         "new-gen-music/images",
-        "image"
+        "image",
+        req.files.image[0].originalname
       );
       post.featuredImage = result.secure_url;
     }
@@ -170,10 +253,14 @@ export const updatePost = async (req, res) => {
       const result = await uploadToCloudinary(
         req.files.media[0].buffer,
         "new-gen-music/media",
-        "auto"
+        "auto",
+        req.files.media[0].originalname
       );
       post.fileUrl = result.secure_url;
-      post.originalFilename = req.files.media[0].originalname;
+      post.originalFilename =
+        req.files.media[0].originalname ||
+        result.original_filename ||
+        getFilenameFromUrl(result.secure_url);
     }
 
     const updatedPost = await post.save();
@@ -206,7 +293,7 @@ export const downloadFile = async (req, res) => {
       return res.status(404).json({ message: "File not found" });
     }
 
-    const filename = post.originalFilename || `${post.title}.mp3`;
+    const filename = await resolveDownloadFilename(post);
 
     // Fetch the file from Cloudinary
     const response = await fetch(post.fileUrl);
@@ -215,7 +302,7 @@ export const downloadFile = async (req, res) => {
     }
 
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-    res.setHeader('Content-Type', response.headers.get('content-type'));
+    res.setHeader('Content-Type', response.headers.get('content-type') || response.headers.get('Content-Type'));
     response.body.pipe(res);
   } catch (error) {
     console.error("Download Error:", error);
