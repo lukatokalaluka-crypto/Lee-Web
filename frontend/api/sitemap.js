@@ -1,5 +1,5 @@
 export default async function(req, res) {
-  const baseUrl = "https://yoursoundtrack.vercel.app";
+  const baseUrl = req.headers.host ? `https://${req.headers.host}` : 'https://yoursoundtrack.vercel.app';
 
   const staticPages = [
     { url: "/", changefreq: "monthly", priority: 1.0 },
