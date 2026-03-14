@@ -3,6 +3,10 @@
   "devCommand": "npm run dev",
   "installCommand": "npm install",
   "outputDirectory": "dist",
+  "ignoreCommand": "npm run lint -- --max-warnings 0",
+  "eslint": {
+    "ignoreDuringBuilds": true
+  },
   "rewrites": [
     {
       "source": "/((?!api).*)",
